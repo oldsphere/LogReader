@@ -9,7 +9,8 @@ def read_content(filepath: str) -> str:
 
 
 class LogAnalyzer:
-    analyzers: List[LineAnalyzer] = list()
+    def __init__(self):
+        self.analyzers = list()
 
     def add_analyzer(self, analyer: LineAnalyzer) -> None:
         self.analyzers.append(analyer)
