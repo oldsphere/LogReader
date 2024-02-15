@@ -1,4 +1,5 @@
 import re
+from typing import Iterable, Callable
 
 
 class LineAnalyzer:
@@ -24,6 +25,7 @@ class LineAnalyzer:
     def update_state(self, line: str) -> None:
         if not self.precondition:
             return
+
         matches = re.search(self.precondition, line)
         if matches and not self.enabled:
             self.enabled = True
@@ -42,6 +44,32 @@ class LineAnalyzer:
         if match and self.enabled:
             return match.groupdict()
         return {}
+
+
+class TypeLineAnalyzer(LineAnalyzer):
+    def __init__(
+        self,
+        name: str,
+        condition: str,
+        conversor: Iterable[Callable],
+        precondition: str = "",
+        endcondition: str = "",
+    ) -> None:
+        super().__init__(name, condition, precondition, endcondition)
+        self.match_conversors(conversor)
+
+    def match_conversors(self, conversors: Iterable[Callable]) -> None:
+        field_pattern: str = r"\(\?P<([^>]+)>"
+        fields = re.findall(field_pattern, self.condition)
+        self.conversors = {
+            field: conversor for field, conversor in zip(fields, conversors)
+        }
+
+    def parse(self, line: str) -> dict:
+        out = super().parse(line)
+        if out:
+            out = { k:self.conversors[k](v) for k,v in out.items()}
+        return out
 
 
 class LineAnalyzerResult:
