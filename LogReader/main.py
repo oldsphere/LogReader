@@ -1,4 +1,3 @@
-from os import read
 from LogReader.LogAnalyzer import LogAnalyzer, read_content
 from LogReader.LineAnalyzer import LineAnalyzer
 
@@ -24,7 +23,7 @@ elapsedTimeAnalyzer = LineAnalyzer(
 
 nonOrthogonalAnalyzer = LineAnalyzer(
     name="nonOrthogonal",
-    condition=r"Mesh non-orthogonality Max: (?P<maxNonOrthogonality>\d+\.?\d*)",
+    condition=r"Mesh non-orthogonality Max: (?P<maxNonOrthogonality>)\d+\.?\d*)",
 )
 meshStatsAnalyzer = LineAnalyzer(
     name="cells",
