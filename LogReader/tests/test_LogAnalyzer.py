@@ -26,7 +26,7 @@ def test_analyze():
         "And that is all"
     )
 
-    out = analyzer.analyze(content)
+    out = analyzer.parse(content)
     assert len(out['test']['data']) == 3
     assert out['test']['data'][0] == '10'
     assert out['test']['data'][1] == '30'

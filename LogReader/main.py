@@ -1,5 +1,6 @@
-from LogReader.LogAnalyzer import LogAnalyzer, read_content
-from LogReader.LineAnalyzer import LineAnalyzer
+from LogReader.content import read_content
+from LogReader.LogAnalyzer import LogAnalyzer
+from LogReader.LineAnalyzer import LineAnalyzer, TypeLineAnalyzer
 
 
 # Defined the rules to analyze the log
@@ -21,13 +22,15 @@ elapsedTimeAnalyzer = LineAnalyzer(
     condition=r"Finished meshing in = (?P<elapedTime>\d+\.\d?)",
 )
 
-nonOrthogonalAnalyzer = LineAnalyzer(
+nonOrthogonalAnalyzer = TypeLineAnalyzer(
     name="nonOrthogonal",
-    condition=r"Mesh non-orthogonality Max: (?P<maxNonOrthogonality>)\d+\.?\d*)",
+    condition=r"Mesh non-orthogonality Max: (?P<maxNonOrthogonality>\d+\.?\d*)",
+    conversor=(float,)
 )
-meshStatsAnalyzer = LineAnalyzer(
+meshStatsAnalyzer = TypeLineAnalyzer(
     name="cells",
-    condition=r"cells:\s*(?P<cells>\d+)"
+    condition=r"cells:\s*(?P<cells>\d+)",
+    conversor=(int,)
 )
 
 # Generate and setting the Log file analyzer
@@ -41,9 +44,9 @@ checkMeshAnalyzer.add_analyzer(meshStatsAnalyzer)
 
 # Process the file
 content = read_content("../logs/snappyHexMesh.log")
-results = snappyAnalyzer.analyze(content)
+results = snappyAnalyzer.parse(content)
 print(results)
 
 content = read_content("../logs/checkMesh.log")
-results = checkMeshAnalyzer.analyze(content)
+results = checkMeshAnalyzer.parse(content)
 print(results)

@@ -1,6 +1,8 @@
 import re
 from typing import Iterable, Callable
 
+DictPattern = str
+NullablePattern = str
 
 class LineAnalyzer:
     """Line Analyzer"""
@@ -8,9 +10,9 @@ class LineAnalyzer:
     def __init__(
         self,
         name: str,
-        condition: str,
-        precondition: str = "",
-        endcondition: str = "",
+        condition: DictPattern,
+        precondition: NullablePattern = "",
+        endcondition: NullablePattern = "",
     ) -> None:
         self.name = name
         self.condition = condition
@@ -50,16 +52,16 @@ class TypeLineAnalyzer(LineAnalyzer):
     def __init__(
         self,
         name: str,
-        condition: str,
+        condition: DictPattern,
         conversor: Iterable[Callable],
-        precondition: str = "",
+        precondition: NullablePattern = "",
         endcondition: str = "",
     ) -> None:
         super().__init__(name, condition, precondition, endcondition)
-        self.match_conversors(conversor)
+        self.macth_conversors(conversor)
 
-    def match_conversors(self, conversors: Iterable[Callable]) -> None:
-        field_pattern: str = r"\(\?P<([^>]+)>"
+    def macth_conversors(self, conversors: Iterable[Callable]) -> None:
+        field_pattern: str = r"\(\?P\<(.+)\>"
         fields = re.findall(field_pattern, self.condition)
         self.conversors = {
             field: conversor for field, conversor in zip(fields, conversors)
@@ -69,6 +71,7 @@ class TypeLineAnalyzer(LineAnalyzer):
         out = super().parse(line)
         if out:
             out = { k:self.conversors[k](v) for k,v in out.items()}
+            print(out)
         return out
 
 
