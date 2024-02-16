@@ -71,7 +71,6 @@ class TypeLineAnalyzer(LineAnalyzer):
         out = super().parse(line)
         if out:
             out = { k:self.conversors[k](v) for k,v in out.items()}
-            print(out)
         return out
 
 
