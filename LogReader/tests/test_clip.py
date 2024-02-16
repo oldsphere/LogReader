@@ -1,7 +1,6 @@
 from LogReader.content import clip
 
 def test_clip():
-
     content = (
         "This is part of the file\n"
         "-- 08:10 --\n"
@@ -15,8 +14,8 @@ def test_clip():
         "Last Entry on the log\n"
     )
 
-    clip_pattern = r"^--\s*(?P<time>\d\d:\d\d)\s*--$"
+    clip_pattern = r"--\s*(?P<time>\d\d:\d\d)\s*--\n"
     list_clips = clip(clip_pattern, content)
 
     assert len(list_clips) == 3
-    assert list_clips[1] == "Next entry on the log\n"
+    assert list_clips[1].content == "Next entry on the log"
