@@ -15,10 +15,11 @@ def test_add_numeric_regex():
     pattern = r"First number: (?P<first>\d+) Second Number: (?P<second>\d+\.?\d*)"
     basic.add_numeric_regex(pattern)
 
-    liner  = TypeLineAnalyzer(name='test', condition=pattern, conversor=(float, float))
+    liner = TypeLineAnalyzer(name="test", condition=pattern, conversor=(float, float))
 
     assert basic.analyzer.analyzers[0].condition == liner.condition
     assert basic.analyzer.analyzers[0].conversors == liner.conversors
+
 
 def test_add_regex():
     basic = BasicAnalyzer()
@@ -26,3 +27,45 @@ def test_add_regex():
     basic.add_regex(pattern)
 
     assert basic.analyzer.analyzers[0].condition == pattern
+
+
+def test_parse():
+    basic = BasicAnalyzer()
+    basic.add_numeric_regex(
+        r"First number: (?P<first_value>\d+)\s*,\s*Second number: (?P<second_value>\d+\.?\d*)"
+    )
+    basic.add_regex(r"^-\s*(?P<casename>\w+)\s*-$")
+    basic.add_numeric_regex(r"Elapsed Time = (?P<elapsedTime>\d+\.?\d*) s")
+
+    content = (
+        "- my_case -\n"
+        "* Computing... OK\n"
+        "* Getting results\n"
+        "The results obtained from the case are:\n"
+        "    First number: 10 , Second number: 6328.3\n"
+        "There are no more results\n"
+        "Elapsed Time = 316.0 s\n"
+        "- end of my_case -\n"
+    )
+
+    results = basic.parse(content)
+
+    assert results['casename'] == ['my_case']
+    assert results['first_value'] == [10]
+    assert results['second_value'] == [6328.3]
+    assert results['elapsedTime'] == [316.0]
+
+
+def test_is_name_collision():
+
+    collision_dict = {
+        "dict1" : { 'name' : 'carlos' },
+        "dict2": { 'name' : 'josé' }
+    }
+    non_collision_dict = {
+        "dict1" : { 'name_1' : 'carlos' },
+        "dict2": { 'name_2' : 'josé' }
+    }
+
+    assert BasicAnalyzer.is_name_collision(collision_dict) == True
+    assert BasicAnalyzer.is_name_collision(non_collision_dict) == False
