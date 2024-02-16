@@ -55,13 +55,13 @@ class TypeLineAnalyzer(LineAnalyzer):
         condition: DictPattern,
         conversor: Iterable[Callable],
         precondition: NullablePattern = "",
-        endcondition: str = "",
+        endcondition: NullablePattern = "",
     ) -> None:
         super().__init__(name, condition, precondition, endcondition)
         self.macth_conversors(conversor)
 
     def macth_conversors(self, conversors: Iterable[Callable]) -> None:
-        field_pattern: str = r"\(\?P\<(.+)\>"
+        field_pattern:str = r"\(\?P\<([^>]+)\>"
         fields = re.findall(field_pattern, self.condition)
         self.conversors = {
             field: conversor for field, conversor in zip(fields, conversors)
