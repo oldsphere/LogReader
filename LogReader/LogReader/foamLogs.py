@@ -1,4 +1,4 @@
-from .LogAnalyzer import BasicAnalyzer
+from .LogAnalyzer import LogAnalyzer
 from .LineAnalyzer import TypeLineAnalyzer
 from .content import clip, read_content
 
