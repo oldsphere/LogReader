@@ -5,12 +5,12 @@ from typing import Dict, Any
 DictPattern = str
 
 
-class LogAnalyzer:
+class BasicAnalyzer:
     def __init__(self):
         self.analyzers = list()
 
-    def add_analyzer(self, analyer: LineAnalyzer) -> None:
-        self.analyzers.append(analyer)
+    def add_analyzer(self, analyzer: LineAnalyzer) -> None:
+        self.analyzers.append(analyzer)
 
     def parse(self, content: str) -> Dict[str, Any]:
         analyzer_results = {
@@ -28,14 +28,14 @@ class LogAnalyzer:
         }
 
 
-class BasicAnalyzer:
+class LogAnalyzer(BasicAnalyzer):
     def __init__(self):
-        self.analyzer = LogAnalyzer()
+        super().__init__()
         self.single_value_analyzers = []
 
     def add_analyzer(self, analyzer: LineAnalyzer, single_value: bool = False) -> None:
         """Add and externally defined analyzer"""
-        self.analyzer.add_analyzer(analyzer)
+        super().add_analyzer(analyzer)
         if single_value:
             self.single_value_analyzers.append(analyzer.name)
 
@@ -43,7 +43,7 @@ class BasicAnalyzer:
         self, pattern: DictPattern, single_value: bool = False
     ) -> None:
         """Add a analyzer and convert the matches to float"""
-        lineAnalyzerName = f"numeric_regex_{len(self.analyzer.analyzers)}"
+        lineAnalyzerName = f"numeric_regex_{len(self.analyzers)}"
         rePattern = re.compile(pattern)
         lineConversors = [float] * len(rePattern.groupindex.keys())
         lineAnalyzer = TypeLineAnalyzer(
@@ -53,7 +53,7 @@ class BasicAnalyzer:
 
     def add_regex(self, pattern: DictPattern, single_value: bool = False) -> None:
         """Add a analyzer and return the matches as str"""
-        lineAnalyzerName = f"regex_{len(self.analyzer.analyzers)}"
+        lineAnalyzerName = f"regex_{len(self.analyzers)}"
         lineAnalyzer = LineAnalyzer(
             name=lineAnalyzerName,
             condition=pattern,
@@ -61,9 +61,8 @@ class BasicAnalyzer:
         self.add_analyzer(lineAnalyzer, single_value)
 
     def parse(self, content: str) -> dict:
-        out = self.analyzer.parse(content)
+        out = super().parse(content)
         out = self.single_results(out)
-        print(out)
         out = self.flat_results(out)
         return out
 
@@ -87,7 +86,7 @@ class BasicAnalyzer:
     @staticmethod
     def flat_results(out: dict) -> dict:
         """Reduce the nesting of out results"""
-        if BasicAnalyzer.is_name_collision(out):
+        if LogAnalyzer.is_name_collision(out):
             raise Exception("There is name collision in the analyzers")
         final_out = {}
         for analyzerOut in out.values():
