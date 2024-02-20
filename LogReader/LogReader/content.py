@@ -18,14 +18,13 @@ def read_content(filepath: str) -> str:
 
 
 def clip(clip_pattern: DictPattern, content: str) -> List[ClipContent]:
-    clips = []
+    clip0 = ClipContent(name="header", start=0)
+    clips = [clip0]
     for match in re.finditer(clip_pattern, content, re.MULTILINE):
         new_clip_name = match.group(1)
         last_clip_end, new_clip_begin = match.span()
         new_clip = ClipContent(name=new_clip_name, start=new_clip_begin) 
         clips.append(new_clip)
-        if len(clips) < 2:
-            continue
         last_clip = clips[-2]
         last_clip.end = last_clip_end-1
         last_clip.content = content[last_clip.start:last_clip.end]

@@ -17,5 +17,5 @@ def test_clip():
     clip_pattern = r"--\s*(?P<time>\d\d:\d\d)\s*--\n"
     list_clips = clip(clip_pattern, content)
 
-    assert len(list_clips) == 3
-    assert list_clips[1].content == "Next entry on the log"
+    assert len(list_clips) == 4
+    assert list_clips[2].content == "Next entry on the log"
