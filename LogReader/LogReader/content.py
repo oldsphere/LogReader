@@ -28,4 +28,6 @@ def clip(clip_pattern: DictPattern, content: str) -> List[ClipContent]:
         last_clip = clips[-2]
         last_clip.end = last_clip_end-1
         last_clip.content = content[last_clip.start:last_clip.end]
+    clips[-1].end = len(content)
+    clips[-1].content = content[clips[-1].start:clips[-1].end]
     return clips
