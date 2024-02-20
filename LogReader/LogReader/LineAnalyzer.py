@@ -24,6 +24,9 @@ class LineAnalyzer:
     def set_state(self, new_state: bool) -> None:
         self.enabled = new_state
 
+    def reset(self):
+        self.enabled = False if self.precondition else True
+
     def update_state(self, line: str) -> None:
         if not self.precondition:
             return

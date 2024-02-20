@@ -50,46 +50,40 @@ def test_parse():
 
     results = basic.parse(content)
 
-    assert results['casename'] == ['my_case']
-    assert results['first_value'] == [10]
-    assert results['second_value'] == [6328.3]
-    assert results['elapsedTime'] == [316.0]
+    assert results["casename"] == ["my_case"]
+    assert results["first_value"] == [10]
+    assert results["second_value"] == [6328.3]
+    assert results["elapsedTime"] == [316.0]
 
 
 def test_is_name_collision():
-
-    collision_dict = {
-        "dict1" : { 'name' : 'carlos' },
-        "dict2": { 'name' : 'josé' }
-    }
-    non_collision_dict = {
-        "dict1" : { 'name_1' : 'carlos' },
-        "dict2": { 'name_2' : 'josé' }
-    }
+    collision_dict = {"dict1": {"name": "carlos"}, "dict2": {"name": "josé"}}
+    non_collision_dict = {"dict1": {"name_1": "carlos"}, "dict2": {"name_2": "josé"}}
 
     assert LogAnalyzer.is_name_collision(collision_dict) == True
     assert LogAnalyzer.is_name_collision(non_collision_dict) == False
 
+
 def test_single_results():
 
     basic = LogAnalyzer()
-    basic.single_value_analyzers.append('test')
-    out = basic.single_results({
-        'test' : {
-            'mimi' : [1]
-        }
-    })
-    assert out['test']['mimi'] == 1
+    basic.single_value_analyzers.append("test")
+    out = basic.single_results({"test": {"mimi": [1]}})
+    assert out["test"]["mimi"] == 1
 
 
 def test_parse_single_value_OK():
     basic = LogAnalyzer()
-    basic.add_numeric_regex(r"Elapsed Time = (?P<elapsedTime>\d+\.?\d*) s", single_value=True)
-
-    content = (
-        "Elapsed Time = 316.0 s\n"
+    basic.add_numeric_regex(
+        r"Elapsed Time = (?P<elapsedTime>\d+\.?\d*) s", single_value=True
     )
+
+    content = "Elapsed Time = 316.0 s\n"
 
     results = basic.parse(content)
 
-    assert results['elapsedTime'] == 316.0
+    assert results["elapsedTime"] == 316.0
+
+
+def test_reset():
+    pass

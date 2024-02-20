@@ -12,6 +12,10 @@ class BasicAnalyzer:
     def add_analyzer(self, analyzer: LineAnalyzer) -> None:
         self.analyzers.append(analyzer)
 
+    def reset(self):
+        for analyzer in self.analyzers:
+            analyzer.reset()
+
     def parse(self, content: str) -> Dict[str, Any]:
         analyzer_results = {
             analyzer: LineAnalyzerResult() for analyzer in self.analyzers

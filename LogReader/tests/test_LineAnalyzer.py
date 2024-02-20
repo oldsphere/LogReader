@@ -60,3 +60,19 @@ def test_condition_parse():
     out = analyzer.parse("sdjskldjskl")
     assert analyzer.enabled == False
     assert out == {}
+
+
+def test_reset():
+    analyzer = LineAnalyzer(
+        name="test",
+        precondition=r"Data:",
+        condition=r"name: (?P<name>\w+).*age: (?P<age>\d+)",
+        endcondition="End Data",
+    )
+
+    assert analyzer.enabled == False
+
+    analyzer.set_state(True)
+    analyzer.reset()
+
+    assert analyzer.enabled == False
