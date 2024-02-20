@@ -1,5 +1,5 @@
 from os.path import dirname
-from LogReader.foamLogs import snappyLog    
+from LogReader.snappyLog import snappyLog    
 from datetime import datetime
 
 def test_parse():

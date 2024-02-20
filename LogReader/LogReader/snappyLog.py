@@ -1,8 +1,8 @@
 from .LogAnalyzer import LogAnalyzer
 from .LineAnalyzer import TypeLineAnalyzer
+from .content import read_content
 
 from typing import List
-from .content import clip, read_content
 from dataclasses import dataclass, field
 from datetime import datetime
 from collections import namedtuple
@@ -27,35 +27,18 @@ class snappyLogData:
     meshing_time: float
     layers: List[snappyLayerData]
 
-
-class snappyLog:
-    def __init__(self):
-        self.analyzer = LogAnalyzer()
-        self.create_analyzers()
-
-    def create_analyzers(self):
-        self._analyzer_number_processors()
-        self._analyzer_mesh_bounding_box()
-        self._analyzer_date_and_hour()
-        self._analyzer_mesing_time()
-        self._analyzer_layer_properties()
-
-    def parse(self, filepath: str) -> snappyLogData:
-        content = read_content(filepath)
-        out = self.analyzer.parse(content)
-        outResult = self.prepare_output(out)
-        return outResult
-
-    def prepare_output(self, out: dict) -> snappyLogData:
-        return snappyLogData(
-            date=self._prepare_output_time(out),
-            nProcs=out["nProcs"],
-            bbox=self._prepare_output_bbox(out),
-            meshing_time=out["meshing_time"],
-            layers=self._prepare_output_layers(out),
+    @classmethod
+    def create_from_dict(cls, log: dict) -> 'snappyLogData':
+        return cls(
+            date=cls._prepare_output_time(log),
+            nProcs=log["nProcs"],
+            bbox=cls._prepare_output_bbox(log),
+            meshing_time=log["meshing_time"],
+            layers=cls._prepare_output_layers(log),
         )
 
-    def _prepare_output_layers(self, out: dict) -> List[snappyLayerData]:
+    @classmethod
+    def _prepare_output_layers(cls, out: dict) -> List[snappyLayerData]:
         if not out.get("layer_patchname"):
             return []
         layerOutData = zip(
@@ -70,14 +53,35 @@ class snappyLog:
             for name, nFaces, nLayers, thickness, fraction in layerOutData
         ]
 
-    def _prepare_output_time(self, out: dict) -> datetime:
+    @classmethod
+    def _prepare_output_time(cls, out: dict) -> datetime:
         strDatetime = f"{out['date']} {out['time']}"
         return datetime.strptime(strDatetime, "%b %d %Y %H:%M:%S")
 
-    def _prepare_output_bbox(self, out: dict) -> bboxType:
+    @classmethod
+    def _prepare_output_bbox(cls, out: dict) -> bboxType:
         return bboxType(
             out["xmin"], out["xmax"], out["ymin"], out["ymax"], out["zmin"], out["zmax"]
         )
+
+
+class snappyLog:
+    def __init__(self):
+        self.analyzer = LogAnalyzer()
+        self.create_analyzers()
+
+    def create_analyzers(self):
+        self._analyzer_number_processors()
+        self._analyzer_mesh_bounding_box()
+        self._analyzer_date_and_hour()
+        self._analyzer_mesing_time()
+        self._analyzer_layer_properties()
+
+    def parse(self, filepath: str) -> snappyLogData:
+        self.analyzer.reset()
+        content = read_content(filepath)
+        out = self.analyzer.parse(content)
+        return snappyLogData.create_from_dict(out)
 
     def _analyzer_mesh_bounding_box(self):
         boundingBoxAnalyzer = TypeLineAnalyzer(
