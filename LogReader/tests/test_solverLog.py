@@ -4,7 +4,8 @@ from LogReader.content import read_content
 from os.path import dirname
 
 CURDIR = dirname(__file__)
-LOGPATH = f'{CURDIR}/logs/rhoSimpleFoam_multirun.log'
+LOGPATH = f"{CURDIR}/logs/rhoSimpleFoam_multirun.log"
+
 
 def test_split_runs():
     parser = solverLog()
@@ -13,6 +14,7 @@ def test_split_runs():
     out = parser._split_runs(content)
 
     assert len(out) == 4
+
 
 def test_split_time():
     parser = solverLog()
@@ -24,6 +26,17 @@ def test_split_time():
     print(times[1].content)
 
     assert len(times) == 474
-    assert len(times[1].content.split('\n')) == 31
-    assert times[1].name == '1'
+    assert len(times[1].content.split("\n")) == 31
+    assert times[1].name == "1"
 
+
+def test_parse_run():
+
+    parser = solverLog()
+    content = read_content(LOGPATH)
+    run_clips = parser._split_runs(content)
+
+    out = parser._parse_run(run_clips[1])
+
+    assert len(out.execution_time.time) == 473
+    assert out.execution_time.value[-1] == 38530.46
