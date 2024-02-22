@@ -2,9 +2,9 @@ from .LogAnalyzer import LogAnalyzer
 from .LineAnalyzer import TypeLineAnalyzer
 from .content import read_content, clip, ClipContent
 
-from typing import List, Dict, Any
+from typing import List, Dict
 from dataclasses import dataclass, field
-from datetime import datetime, time
+from datetime import datetime
 
 
 @dataclass
@@ -16,60 +16,25 @@ class TimeSerie:
         nElements = len(self.time)
         minTime, maxTime = min(self.time), max(self.time)
         minVal, maxVal = min(self.value), max(self.value)
-        return f"<TimeSerie nElements={nElements} time={minTime}:{maxTime} value={minVal}:{maxVal}>"
+        return f'<TimeSerie nElements={nElements} time={minTime}:{maxTime} value={minVal}:{maxVal}>'
 
-
-class FieldSolvingData:
-
-    def __init__(self, name: str) -> None:
-        self.name = name
-        self.time = []
-        self.initial_residual = []
-        self.final_residual = []
-        self.nIterations = []
-
-    def add(self, time: float, initial: float, final: float, nIter: int) -> None:
-        self.time.append(time)
-        self.initial_residual.append(initial)
-        self.final_residual.append(final)
-        self.nIterations.append(nIter)
-
-    def __repr__(self):
-        return f"<FieldSolvingData field={self.name} ({len(self.time)})>"
-
-    def has_valid_field(self, result:dict) -> bool:
-        return all([
-            'time' in result.keys(),
-            f'{self.name}_initial_result' in result.keys(),
-            f'{self.name}_final_result' in result.keys(),
-            f'{self.name}_iterations' in result.keys(),
-        ])
 
 @dataclass
 class solverLogData:
-    date: datetime = datetime(1900, 1, 1)
+    date: datetime = datetime(1900,1,1)
 
     @classmethod
-    def create_from_header(cls, header) -> "solverLogData":
-        out = cls(date=cls._prepare_output_time(header))
-        [out.add_attribute(name, value) for name, value in header.items()]
-        return out
+    def create_from_header(cls, header) -> 'solverLogData':
+        return cls(
+            date = cls._prepare_output_time(header)
+        )
 
     @classmethod
     def extract_time_series(cls, out: List[dict]) -> Dict[str, TimeSerie]:
 
         def extract_single_time(globalDict: dict, timeDict: dict) -> None:
             time = timeDict.pop("time")
-
             for name, value in timeDict.items():
-                # Add solving field data 
-
-
-                # Ignore list values
-                if type(value) == list:
-                    continue
-
-                # Add Time series data
                 if not globalDict.get(name):
                     globalDict[name] = TimeSerie()
                 globalDict[name].time.append(time)
@@ -79,13 +44,11 @@ class solverLogData:
         [extract_single_time(timeSeries, time_match) for time_match in out]
         return timeSeries
 
-    def add_time_series(self, series_data: list) -> None:
-        series = self.extract_time_series(series_data)
-        for name, value in series.items():
-            self.add_attribute(name, value)
-
-    def add_attribute(self, name: str, value: Any) -> None:
-        setattr(self, name, value)
+    def add_time_series(self, out: List[dict]) -> None:
+        time_series_dict = self.extract_time_series(out)
+        self.__dict__.update(time_series_dict)
+        for k,v in time_series_dict.items():
+            setattr(self, k, v)
 
     @classmethod
     def _prepare_output_time(cls, out: dict) -> datetime:
@@ -115,16 +78,6 @@ class solverLog:
             data.append(self._parse_run(run))
         return data
 
-    def add_solving_field(self, field: str) -> None:
-        self.body_analyser.add_numeric_regex(
-            pattern=(
-                rf"Solving for {field},\s*"
-                rf"Initial residual = (?P<{field}_initial_residual>\d+\.?\d*),\s*"
-                rf"Final residual = (?P<{field}_final_residual>\d+\.?\d*),\s*"
-                rf"No Iterations (?P<{field}_iterations>\d+)"
-            )
-        )
-
     def _parse_header(self, header: ClipContent) -> dict:
         return self.header_analyser.parse(header.content)
 
@@ -137,6 +90,7 @@ class solverLog:
         iterations = self._split_time(run_content.content)
 
         headerOut = self._parse_header(iterations.pop(0))
+        print(headerOut)
 
         results = solverLogData.create_from_header(headerOut)
         out = [self._parse_iteration(it) for it in iterations]
