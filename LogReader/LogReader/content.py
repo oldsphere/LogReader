@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Iterable
 from dataclasses import dataclass, field
 import re
 
@@ -31,3 +31,10 @@ def clip(clip_pattern: DictPattern, content: str) -> List[ClipContent]:
     clips[-1].end = len(content)
     clips[-1].content = content[clips[-1].start:clips[-1].end]
     return clips
+
+
+def is_match_in_list(pattern:str, content:Iterable[str]) -> bool:
+    return any([
+        pattern in element
+        for element in content
+    ])

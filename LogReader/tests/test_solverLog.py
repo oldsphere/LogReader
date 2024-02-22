@@ -40,7 +40,7 @@ def test_add_solving_field():
         "Initial residual = 0.51395838,"
         "Final residual = 0.00038539459,"
         "No Iterations 1"
-    )
+        )
     out = lineParser.parse(line)
     assert out["myField_initial_residual"] == 0.51395838
 
@@ -48,11 +48,12 @@ def test_add_solving_field():
 def test_parse_run():
     parser = solverLog()
     parser.add_solving_field("Ux")
+    parser.add_solving_field("Uy")
     content = read_content(LOGPATH)
     run_clips = parser._split_runs(content)
-
     out = parser._parse_run(run_clips[1])
 
     assert len(out.execution_time.time) == 472
     assert out.execution_time.value[-1] == 38530.46
-    assert False
+    assert len(out.Ux.time) == 473
+    assert len(out.Ux.nIterations) == 473

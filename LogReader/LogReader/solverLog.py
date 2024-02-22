@@ -1,6 +1,5 @@
 from .LogAnalyzer import LogAnalyzer
-from .LineAnalyzer import TypeLineAnalyzer
-from .content import read_content, clip, ClipContent
+from .content import is_match_in_list, read_content, clip, ClipContent
 
 from typing import List, Dict, Any
 from dataclasses import dataclass, field
@@ -37,13 +36,34 @@ class FieldSolvingData:
     def __repr__(self):
         return f"<FieldSolvingData field={self.name} ({len(self.time)})>"
 
-    def has_valid_field(self, result:dict) -> bool:
-        return all([
-            'time' in result.keys(),
-            f'{self.name}_initial_result' in result.keys(),
-            f'{self.name}_final_result' in result.keys(),
-            f'{self.name}_iterations' in result.keys(),
-        ])
+    @staticmethod
+    def has_valid_field(name: str, result: dict) -> bool:
+        return all(
+            [
+                "time" in result.keys(),
+                is_match_in_list(f"{name}_initial_residual",result.keys()),
+                is_match_in_list(f"{name}_final_residual",result.keys()),
+                is_match_in_list(f"{name}_iterations",result.keys()),
+            ]
+        )
+
+    def add_from_dict(self, result: dict) -> None:
+        if not self.has_valid_field(self.name, result):
+            return
+        self.add(
+            time=result["time"],
+            initial=result[f"{self.name}_initial_residual"][0],
+            final=result[f"{self.name}_final_residual"][0],
+            nIter=result[f"{self.name}_iterations"][0],
+        )
+
+    @staticmethod
+    def get_field_names(result: dict) -> List[str]:
+        if not FieldSolvingData.has_valid_field(name="", result=result):
+            return [""]
+        iteration_keys = [key for key in result.keys() if "_iterations" in key]
+        return [iter_label.replace("_iterations", "") for iter_label in iteration_keys]
+
 
 @dataclass
 class solverLogData:
@@ -59,12 +79,17 @@ class solverLogData:
     def extract_time_series(cls, out: List[dict]) -> Dict[str, TimeSerie]:
 
         def extract_single_time(globalDict: dict, timeDict: dict) -> None:
+
+            # Add field data
+            fieldNames = FieldSolvingData.get_field_names(timeDict)
+            for fieldName in fieldNames:
+                if not globalDict.get(fieldName):
+                    globalDict[fieldName] = FieldSolvingData(name=fieldName)
+                globalDict[fieldName].add_from_dict(timeDict)
+
             time = timeDict.pop("time")
 
             for name, value in timeDict.items():
-                # Add solving field data 
-
-
                 # Ignore list values
                 if type(value) == list:
                     continue
@@ -116,11 +141,12 @@ class solverLog:
         return data
 
     def add_solving_field(self, field: str) -> None:
+        floatFmt = r'-?\d+\.?\d*[eE]?[-+]?\d*'
         self.body_analyser.add_numeric_regex(
             pattern=(
                 rf"Solving for {field},\s*"
-                rf"Initial residual = (?P<{field}_initial_residual>\d+\.?\d*),\s*"
-                rf"Final residual = (?P<{field}_final_residual>\d+\.?\d*),\s*"
+                rf"Initial residual = (?P<{field}_initial_residual>{floatFmt}),\s*"
+                rf"Final residual = (?P<{field}_final_residual>{floatFmt}),\s*"
                 rf"No Iterations (?P<{field}_iterations>\d+)"
             )
         )
