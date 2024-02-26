@@ -19,7 +19,6 @@ class TimeSerie:
 
 
 class FieldSolvingData:
-
     def __init__(self, name: str) -> None:
         self.name = name
         self.time = []
@@ -41,9 +40,9 @@ class FieldSolvingData:
         return all(
             [
                 "time" in result.keys(),
-                is_match_in_list(f"{name}_initial_residual",result.keys()),
-                is_match_in_list(f"{name}_final_residual",result.keys()),
-                is_match_in_list(f"{name}_iterations",result.keys()),
+                is_match_in_list(f"{name}_initial_residual", result.keys()),
+                is_match_in_list(f"{name}_final_residual", result.keys()),
+                is_match_in_list(f"{name}_iterations", result.keys()),
             ]
         )
 
@@ -141,7 +140,7 @@ class solverLog:
         return data
 
     def add_solving_field(self, field: str) -> None:
-        floatFmt = r'-?\d+\.?\d*[eE]?[-+]?\d*'
+        floatFmt = r"-?\d+\.?\d*[eE]?[-+]?\d*"
         self.body_analyser.add_numeric_regex(
             pattern=(
                 rf"Solving for {field},\s*"
