@@ -129,6 +129,6 @@ class snappyLog:
                 r"(?P<layer_thicknessFraction>\d+\.?\d*)\s*"
             ),
             endcondition=r"^\s*$",
-            conversor=(str, int, int, float, float),
+            conversor=(str, int, float, float, float),
         )
         self.analyzer.add_analyzer(layerPropsAnalyzer)
