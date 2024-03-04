@@ -45,7 +45,6 @@ class checkmeshLog:
         self.analyzer.reset()
         out = self.analyzer.parse(time_clip.content)
         out["time"] = float(time_clip.name)
-        print(out)
         return checkMeshLogData.create_from_log(out)
 
     def _split_by_time(self, content: str) -> List[ClipContent]:
