@@ -28,7 +28,7 @@ class snappyLogData:
     layers: List[snappyLayerData]
 
     @classmethod
-    def create_from_dict(cls, log: dict) -> 'snappyLogData':
+    def create_from_dict(cls, log: dict) -> "snappyLogData":
         return cls(
             date=cls._prepare_output_time(log),
             nProcs=log["nProcs"],
@@ -122,10 +122,10 @@ class snappyLog:
             name="Layer Properties",
             precondition=r"patch\s*faces\s*layers\s*overall\s*thickness",
             condition=(
-                r"^(?P<layer_patchname>\w+)\s*"
-                r"(?P<layer_nFaces>\d+)\s*"
-                r"(?P<layer_nLayers>\d+)\s*"
-                r"(?P<layer_thickness>\d+)\s*"
+                r"^(?P<layer_patchname>\w+)\s+"
+                r"(?P<layer_nFaces>\d+)\s+"
+                r"(?P<layer_nLayers>\d+\.?\d*)\s+"
+                r"(?P<layer_thickness>\d+\.?\d*)\s+"
                 r"(?P<layer_thicknessFraction>\d+\.?\d*)\s*"
             ),
             endcondition=r"^\s*$",
