@@ -1,9 +1,14 @@
+from os import walk
 from .LogAnalyzer import LogAnalyzer
 from .content import is_match_in_list, read_content, clip, ClipContent
+from .LineAnalyzer import TypeLineAnalyzer
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, cast
 from dataclasses import dataclass, field
-from datetime import datetime, time
+from datetime import datetime
+
+from PyFoam.RunDictionary.ParsedParameterFile import ParsedParameterFile
+from PyFoam.Basics.DataStructures import DictProxy
 
 
 @dataclass
@@ -150,6 +155,13 @@ class solverLog:
             )
         )
 
+    def add_customRegExp(self, file: str) -> None:
+        analyzers = parse_regex_file(file)
+        [
+            self.body_analyser.add_analyzer(analyzer, single_value=True)
+            for analyzer in analyzers
+        ]
+
     def _parse_header(self, header: ClipContent) -> dict:
         return self.header_analyser.parse(header.content)
 
@@ -203,3 +215,26 @@ class solverLog:
         self.header_analyser.add_regex(
             r"Exec\s+:\s+(?P<solver_type>.+)", single_value=True
         )
+
+
+def parse_dict(filepath: str) -> DictProxy:
+    out = ParsedParameterFile(filepath, noHeader=True)
+    outDict = out.content
+    outDict = cast(DictProxy, outDict)
+    return outDict
+
+
+def parse_custom_expression(name: str, expression: str) -> Tuple[str, str]:
+    """Se encarga de traducir (%f%) a un valor determinado"""
+
+
+def parse_regex_file(filepath: str) -> List[TypeLineAnalyzer]:
+    content = parse_dict(filepath)
+    analyzers = []
+    for name, values in content.items():
+        condition, conversor = parse_custom_expresion(
+            name=name, expresion=values["expr"]
+        )
+        analyzer = TypeLineAnalyzer(name=name, condition=condition, conversor=conversor)
+        analyzers.append(analyzer)
+    return analyzers

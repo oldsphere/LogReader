@@ -1,0 +1,27 @@
+pressureDrop
+{
+    expr "areaAverage\(inlet\) of p = (%f%)";
+    name pressureDrop;
+    theTitle "pressureDrop";
+    titles ("pressureDrop");
+    type regular;
+}
+
+outletT
+{
+    expr "areaAverage\(outlet\) of T = (%f%)";
+    name outletTemperature;
+    theTitle "outletTemperature";
+    titles ("outletTemperature");
+    type regular;
+}
+
+maxT
+{
+    expr "max\(T\) = (%f%)";
+    name maxTemperature;
+    theTitle "maxTemperature";
+    titles ("maxTemperature");
+    type regular;
+}
+
