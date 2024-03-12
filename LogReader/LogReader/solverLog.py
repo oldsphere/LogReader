@@ -1,11 +1,11 @@
-from os import walk
 from .LogAnalyzer import LogAnalyzer
 from .content import is_match_in_list, read_content, clip, ClipContent
 from .LineAnalyzer import TypeLineAnalyzer
 
-from typing import List, Dict, Any, cast
+from typing import List, Dict, Any, cast, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
+import re
 
 from PyFoam.RunDictionary.ParsedParameterFile import ParsedParameterFile
 from PyFoam.Basics.DataStructures import DictProxy
@@ -224,16 +224,22 @@ def parse_dict(filepath: str) -> DictProxy:
     return outDict
 
 
-def parse_custom_expression(name: str, expression: str) -> Tuple[str, str]:
+def parse_custom_expression(name: str, expression: str) -> Tuple[str, tuple]:
     """Se encarga de traducir (%f%) a un valor determinado"""
+    assert (
+        expression.count("(%f%)") == 1
+    ), f"The expresion {expression} has invalid format"
+    floatFmt = r"-?\d+\.?\d*[eE]?[-+]?\d*"
+    new_expression = expression.replace("(%f%)", f"(?P<{name}>{floatFmt})").strip('"')
+    return new_expression, (float,)
 
 
 def parse_regex_file(filepath: str) -> List[TypeLineAnalyzer]:
     content = parse_dict(filepath)
     analyzers = []
     for name, values in content.items():
-        condition, conversor = parse_custom_expresion(
-            name=name, expresion=values["expr"]
+        condition, conversor = parse_custom_expression(
+            name=name, expression=values["expr"]
         )
         analyzer = TypeLineAnalyzer(name=name, condition=condition, conversor=conversor)
         analyzers.append(analyzer)

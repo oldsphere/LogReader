@@ -1,4 +1,4 @@
-from LogReader.solverLog import solverLog, parse_regex_file
+from LogReader.solverLog import parse_custom_expression, solverLog, parse_regex_file
 from LogReader.content import read_content
 
 from os.path import dirname
@@ -6,6 +6,8 @@ from os.path import dirname
 CURDIR = dirname(__file__)
 LOGPATH = f"{CURDIR}/logs/rhoSimpleFoam_multirun.log"
 REGEXPATH = f"{CURDIR}/logs/customRegExp"
+
+floatFmt = r"-?\d+\.?\d*[eE]?[-+]?\d*"
 
 
 def test_split_runs():
@@ -62,4 +64,36 @@ def test_parse_run():
 
 def test_parse_regex_file():
     out = parse_regex_file(REGEXPATH)
-    assert False
+    assert out[0].name == "pressureDrop"
+    assert (
+        out[0].condition == rf"areaAverage\(inlet\) of p = (?P<pressureDrop>{floatFmt})"
+    )
+
+
+def test_parse_custom_expression():
+    expression = r'"areaAverage\(outlet\) of T = (%f%)"'
+    new_expression, conversors = parse_custom_expression(
+        name="test", expression=expression
+    )
+    assert new_expression == rf"areaAverage\(outlet\) of T = (?P<test>{floatFmt})"
+    assert conversors == (float,)
+
+    # Check failure by no float
+    expression = '"Failure because non file"'
+    try:
+        new_expression, conversors = parse_custom_expression(
+            name="test", expression=expression
+        )
+        raise AssertionError("Expresions without float does not raise error")
+    except:
+        pass
+
+    # Check failure by multiple float
+    expression = '"This fail (%f%) for (%f%) multiple matches"'
+    try:
+        new_expression, conversors = parse_custom_expression(
+            name="test", expression=expression
+        )
+        raise AssertionError("Expresions with multiple float does not raise error")
+    except:
+        pass
